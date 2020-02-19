@@ -23,3 +23,16 @@ svg {
   stroke: steelblue;
   stroke-width: 2px;
 }
+
+#slider-container {
+  position: relative;
+  height: 30px;
+  width: 70%;
+
+  margin-left: 20%;
+  background-color: #eeeef5;
+}
+
+#range-label {
+  text-align: center;
+}

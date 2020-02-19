@@ -40,9 +40,15 @@ const initChart = () => {
   prices.selectAll(".x-axis text");
 };
 
+const getQuotesBetween = (quotes, { begin, end }) =>
+  quotes.filter(q => {
+    const date = new Date(q.Date).getTime();
+    return date >= begin && date <= end;
+  });
+
 const updateQuotes = function(quotes) {
-  const fq = _.first(quotes);
-  const lq = _.last(quotes);
+  fq = _.first(quotes);
+  lq = _.last(quotes);
   const minClose = _.get(_.minBy(quotes, "Close"), "Close", 0);
   const maxClose = _.get(_.maxBy(quotes, "Close"), "Close", 0);
 
@@ -106,11 +112,27 @@ const analyseData = quotes => {
   }
 };
 
+const setRangeScale = quotes => {
+  const minRange = new Date(_.first(quotes).Date).getTime();
+  const maxRange = new Date(_.last(quotes).Date).getTime();
+  const slider = createD3RangeSlider(minRange, maxRange, "#slider-container");
+
+  slider.onChange(newRange => {
+    d3.selectAll("path").remove();
+    const begin = new Date(newRange.begin).toLocaleString().split(",")[0];
+    const end = new Date(newRange.end).toLocaleString().split(",")[0];
+    d3.select("#range-label").text(begin + " - " + end);
+    updateQuotes(getQuotesBetween(quotes, newRange));
+  });
+  slider.range(minRange, maxRange);
+};
+
 const visualizeQuotes = quotes => {
   analyseData(quotes);
   recordTransactions(quotes);
   initChart(quotes);
   updateQuotes(quotes);
+  setRangeScale(quotes);
 };
 
 const main = () => {
