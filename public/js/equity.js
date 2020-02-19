@@ -47,16 +47,19 @@ const getQuotesBetween = (quotes, { begin, end }) =>
   });
 
 const updateQuotes = function(quotes) {
-  fq = _.first(quotes);
-  lq = _.last(quotes);
+  const fq = _.first(quotes);
+  const lq = _.last(quotes);
+  const quotesWithSMA = quotes.filter(q => q.SMA);
+  
   const minClose = _.get(_.minBy(quotes, "Close"), "Close", 0);
+  const minSma = _.get(_.minBy(quotesWithSMA, "SMA"), "SMA", 0);
   const maxClose = _.get(_.maxBy(quotes, "Close"), "Close", 0);
 
   const quotesG = d3.select("#chart-area svg .prices");
 
   const y = d3
     .scaleLinear()
-    .domain([minClose, maxClose])
+    .domain([Math.min(minClose, minSma), maxClose])
     .range([height, 0]);
 
   const yAxis = d3.axisLeft(y).ticks(10);
@@ -89,7 +92,7 @@ const updateQuotes = function(quotes) {
   quotesG
     .append("path")
     .attr("class", "sma")
-    .attr("d", averageLine(quotes.slice(99)));
+    .attr("d", averageLine(quotesWithSMA));
 };
 
 const parseNSEI = function({ Date, Volume, AdjClose, ...numeric }) {
@@ -112,7 +115,7 @@ const analyseData = quotes => {
   }
 };
 
-const setRangeScale = quotes => {
+const initSlider = quotes => {
   const minRange = new Date(_.first(quotes).Date).getTime();
   const maxRange = new Date(_.last(quotes).Date).getTime();
   const slider = createD3RangeSlider(minRange, maxRange, "#slider-container");
@@ -132,7 +135,7 @@ const visualizeQuotes = quotes => {
   recordTransactions(quotes);
   initChart(quotes);
   updateQuotes(quotes);
-  setRangeScale(quotes);
+  initSlider(quotes);
 };
 
 const main = () => {
